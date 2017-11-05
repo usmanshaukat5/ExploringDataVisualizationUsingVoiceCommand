@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<style>
+
+  #div4 {
+    font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
+    margin: auto;
+    position: relative;
+}
+		 .bar{
+    fill: steelblue;
+  }
+
+		 #div1{
+			 background-color: #5f5f5f;
+			 color: white;
+			 padding: 15px;
+			 padding-left: 8%;
+		 }
+		 #pp1{
+	  		padding: 0px;
+			 margin: 0px;
+			 font-size: 18px;
+
+		  }
+		 #pp2{
+	  		padding-left: 15px;
+			 margin: 0px;
+			 fill: none;
+			 font-size: 40px;
+			 font-weight: bold;
+
+		  }
+		 #pp3{
+	  		padding-left: 240px;
+			 margin: 0px;
+			 font-size: 18px;
+
+		  }
+		 #pp4{
+
+		 }
+
+  .bar:hover{
+    fill: brown;
+  }
+
+	.axis {
+	  font: 10px sans-serif;
+	}
+
+	.axis path,
+	.axis line {
+	  fill: none;
+	  stroke: #000;
+	  shape-rendering: crispEdges;
+	}
+
+	</style>
+</head>
+
+<body>
+
+	<div  id="div1">
+		<div id="pp1">Exploring</div>
+		<div id="pp2">Data Visualisation</div>
+		<div id="pp3">Using Voice Commands</div>
+	</div>
+	 <div class="container" id="div2">
+
+<div id="div3 ">
+	<br>
+	<div class="col-md-2" align="right">
+		<p id="pp4"><b>Select Graph:</b></p>
+	</div>
+	<div class="col-md-10">
+	<select id="graph">
+		<option value="None">None</option>
+		<option value="BarChart">Bar Chart</option>
+		<option value="DonutChart">Donut Chart</option>
+
+	</select>
+		</div>
+</div>
+<div align="center" style="text-transform: capitalize;">
+	<h2><b>Visualization of {{temp}}</b></h2>
+</div>
+		 <br>
+<div id="div4" align="center">
+
+
+
+
+</div>
+
+	</div>
+
+
+
+<script>
+	d3.select("select").on("change",function (d) {
+	    var val=d3.select("#graph").node().value;
+		if(val=="DonutChart")
+		    pieChart()
+		else if(val=="BarChart")
+		    barChart()
+		else
+		{
+		    d3.select("#div4").selectAll("svg").remove();
+		    document.getElementById("div4").innerHTML = "<h2>Please Select Any Chart</h2>";
+
+		}
+    })
+
+ function pieChart() {
+
+
+	    d3.select("#div4").selectAll("svg").remove();
+
+	    document.getElementById("div4").innerHTML = "<h4>Donut Chart</h4>";
+	 var data=JSON.parse('{{dataa|safe}}')
+
+
+
+var width = 600,
+    height = 400,
+    radius = Math.min(width, height) / 2;
+
+var color = d3.scale.ordinal()
+    .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00", "#7b6888"]);
+
+var arc = d3.svg.arc()
+    .outerRadius(radius - 10)
+    .innerRadius(radius - 70);
+
+var pie = d3.layout.pie()
+    .sort(null)
+    .value(function (d) {
+    return d.population;
+});
+
+var svg = d3.select("#div4").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .append("g")
+    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+
+
+
+
+
+    var g = svg.selectAll(".arc")
+        .data(pie(data))
+        .enter().append("g")
+        .attr("class", "arc");
+
+    g.append("path")
+        .attr("d", arc)
+        .style("fill", function (d) {
+        return color(d.data.name);
+    });
+
+    g.append("text")
+        .attr("transform", function (d) {
+        return "translate(" + arc.centroid(d) + ")";
+    })
+        .attr("dy", ".35em")
+        .style("text-anchor", "middle")
+        .text(function (d) {
+        return d.data.name;
+    });
+
+ }
+ 
+ function barChart() {
+
+	    d3.select("#div4").selectAll("svg").remove();
+
+	    document.getElementById("div4").innerHTML = "<h4>Bar Chart</h4>";
+
+	 data = JSON.parse('{{dataa|safe}}')
+
+     var margin = {top: 20, right: 20, bottom: 70, left: 40},
+    width = 600 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+
+
+// set the ranges
+var x = d3.scale.ordinal().rangeRoundBands([0, width], .05);
+
+var y = d3.scale.linear().range([height, 0]);
+
+// define the axis
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom")
+
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left")
+    .ticks(10);
+
+
+// add the SVG element
+	var svg = d3.select("#div4").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+
+
+// load the data
+
+    data.forEach(function(d) {
+        d.name = d.name;
+        d.population = +d.population;
+    });
+
+  // scale the range of the data
+  x.domain(data.map(function(d) { return d.name; }));
+  y.domain([0, d3.max(data, function(d) { return d.population; })]);
+
+  // add axis
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+    .selectAll("text")
+      .style("text-anchor", "end")
+      .attr("dx", "-.8em")
+      .attr("dy", "-.55em")
+      .attr("transform", "rotate(-90)" );
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 5)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("population");
+
+
+  // Add bar chart
+  svg.selectAll("bar")
+      .data(data)
+    .enter().append("rect")
+      .attr("class", "bar")
+      .attr("x", function(d) { return x(d.name); })
+      .attr("width", x.rangeBand())
+      .attr("y", function(d) { return y(d.population); })
+      .attr("height", function(d) { return height - y(d.population); });
+
+
+ }
+
+
+</script>
+
+</body>
+</html>
